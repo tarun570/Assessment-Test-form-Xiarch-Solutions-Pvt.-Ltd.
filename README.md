@@ -27,23 +27,13 @@ python agent.py "impact of quantum computing on cryptography"
 python agent.py "latest trends in agentic AI" --pdf
 ```
 
-Option 2 — Secure coding assistant:
+The repository implements Option 1 (Autonomous Research Agent).
 
-```bash
-python secure_coding_agent.py path/to/vulnerable_file.py
-```
+The Option 1 agent generates:
 
-Option 3 — Internal knowledge execution agent:
-
-```bash
-python knowledge_agent.py "Who works on the Research Agent project?"
-```
-
-The repository implements:
-
-- **Option 1:** Autonomous research agent with external web search, duplicate filtering, source validation, memory, and Markdown/PDF export.
-- **Option 2:** Secure coding assistant that inspects a source file, identifies vulnerabilities, and outputs a patched code file.
-- **Option 3:** Internal knowledge execution agent that reads internal JSON knowledge sources, reasons over the data, selects actions, executes them, and logs audits.
+- `summary.md` — structured Markdown research summary
+- `summary.pdf` — PDF summary when using `--pdf`
+- `memory.json` — saved past research runs for future `check_memory` queries
 
 The Option 1 agent generates:
 
@@ -54,10 +44,7 @@ The Option 1 agent generates:
 ## Repository contents
 
 - `agent.py` — Option 1 autonomous research agent
-- `secure_coding_agent.py` — Option 2 secure coding assistant
-- `knowledge_agent.py` — Option 3 knowledge execution agent
 - `tools.py` — web search, deduplication, verification, memory, and export helpers
-- `internal_knowledge.json` — sample internal knowledge source for Option 3
 - `tests/` — unit tests for core behavior
 - `.github/workflows/python-app.yml` — CI workflow
 - `estimate_call_cost.py`, `check_cost.py` — optional developer utilities
@@ -82,10 +69,25 @@ The agent loop is not hardcoded; the model chooses the next action each turn.
 - The summary is structured with key points, findings, actions, and sources.
 - The repository includes tests and CI for submission readiness.
 
+## Submission checklist
+
+Include the following files in your submission ZIP or GitHub repo:
+
+- `agent.py`
+- `tools.py`
+- `tests/`
+- `README.md`
+- `RUN.md`
+- `requirements.txt`
+
+Notes:
+
+- Remove any `.env` or files containing secrets before sharing.
+- Tests: run `python -m pytest -q` (local result: `6 passed`).
+- For a live demo ensure `OPENAI_API_KEY` is set in the environment.
+
 ## Notes
 
-- This repository implements **Options 1, 2, and 3**.
-- `ddgs` is used for DuckDuckGo search; replace the search backend with a more
-  robust API for a live demo if needed.
-- `estimate_call_cost.py` and `check_cost.py` are optional tools, not required
-  for the core agents.
+- This repository implements **Option 1 only**.
+- `ddgs` is used for DuckDuckGo search; replace the search backend with a more robust API for a live demo if needed.
+- `estimate_call_cost.py` and `check_cost.py` are optional developer utilities.

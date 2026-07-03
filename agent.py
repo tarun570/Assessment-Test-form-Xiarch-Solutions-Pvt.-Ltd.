@@ -36,7 +36,7 @@ load_dotenv()
 MODEL = "gpt-4o"
 MAX_TURNS = 8  # safety cap on the reasoning loop, not a hardcoded plan
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+client = None
 
 SYSTEM_PROMPT = """You are an autonomous research agent.
 
@@ -115,6 +115,12 @@ TOOLS_SCHEMA = [
 def run_agent(topic: str) -> dict:
     if not os.environ.get("OPENAI_API_KEY"):
         raise SystemExit("OPENAI_API_KEY is required to run the agent.")
+
+    # instantiate the OpenAI client lazily so tests that import this module
+    # without an API key won't fail at import time
+    global client
+    if client is None:
+        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
