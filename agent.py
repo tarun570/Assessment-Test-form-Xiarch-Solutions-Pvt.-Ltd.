@@ -197,23 +197,58 @@ def run_agent(topic: str) -> dict:
                     "content": "Unknown tool.",
                 })
 
-    # Fallback: synthesize a partial summary from collected sources so the
-    # agent returns something useful instead of raising an error. This keeps
-    # the system robust if the LLM never calls `finalize_summary` within
-    # `MAX_TURNS`.
-    print("Turn limit reached without finalize_summary; producing partial summary.")
+    # Fallback: ask the LLM to synthesize a structured summary from the
+    # collected search URLs. This avoids returning a hardcoded summary and
+    # keeps the output LLM-driven as required by the assessment.
+    print("Turn limit reached without finalize_summary; asking LLM to synthesize summary.")
     combined = list(collected_sources)
+    # verify sources first
     verified = tools.verify_and_filter_sources(combined, max_results=10)
-    partial = {
-        "key_points": [
-            "Partial summary: agent did not explicitly call finalize_summary within the turn limit."
-        ],
-        "important_findings": [],
-        "sources": verified,
-        "actionable_insights": [],
-    }
-    tools.save_to_memory(topic, partial)
-    return partial
+
+    # Ensure client exists
+    if client is None:
+        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+    synth_system = (
+        "You are an assistant that synthesizes a structured research summary. "
+        "Produce a JSON object with keys: key_points (array of short strings), "
+        "important_findings (array), sources (array of URLs), actionable_insights (array)."
+    )
+    synth_user = (
+        f"Topic: {topic}\n"
+        f"Verified sources (up to 10):\n{json.dumps(verified, indent=2)}\n"
+        "Use the sources above to produce concise, factual points. Output ONLY valid JSON."
+    )
+
+    try:
+        resp = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": synth_system},
+                {"role": "user", "content": synth_user},
+            ],
+        )
+        content = resp.choices[0].message.get("content") or resp.choices[0].message.content
+        # attempt to parse JSON from the model
+        summary = json.loads(content)
+        # ensure sources are set to verified list if model omitted them
+        summary["sources"] = list(dict.fromkeys(summary.get("sources") or []))[:10]
+        # final verification/filtering
+        summary["sources"] = tools.verify_and_filter_sources(summary["sources"] + verified, max_results=10)
+        tools.save_to_memory(topic, summary)
+        return summary
+    except Exception:
+        # last-resort fallback: return a minimal LLM-free partial summary
+        partial = {
+            "key_points": [
+                "Partial summary: agent did not explicitly call finalize_summary within the turn limit."
+            ],
+            "important_findings": [],
+            "sources": verified,
+            "actionable_insights": [],
+        }
+        tools.save_to_memory(topic, partial)
+        return partial
 
 
 def main():

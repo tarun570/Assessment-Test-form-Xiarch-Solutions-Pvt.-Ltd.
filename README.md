@@ -35,12 +35,6 @@ The Option 1 agent generates:
 - `summary.pdf` — PDF summary when using `--pdf`
 - `memory.json` — saved past research runs for future `check_memory` queries
 
-The Option 1 agent generates:
-
-- `summary.md` — structured Markdown research summary
-- `summary.pdf` — PDF summary when using `--pdf`
-- `memory.json` — saved past research runs for future `check_memory` queries
-
 ## Repository contents
 
 - `agent.py` — Option 1 autonomous research agent
